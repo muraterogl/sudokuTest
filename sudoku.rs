@@ -1,69 +1,49 @@
-
-static mut BOARD: [[i32; 9]; 9] = [
-    [5, 3, 0, 0, 7, 0, 0, 0, 0],
-    [6, 0, 0, 1, 9, 5, 0, 0, 0],
-    [0, 9, 8, 0, 0, 0, 0, 6, 0],
-    [8, 0, 0, 0, 6, 0, 0, 0, 3],
-    [4, 0, 0, 8, 0, 3, 0, 0, 1],
-    [7, 0, 0, 0, 2, 0, 0, 0, 6],
-    [0, 6, 0, 0, 0, 0, 2, 8, 0],
-    [0, 0, 0, 4, 1, 9, 0, 0, 5],
-    [0, 0, 0, 0, 8, 0, 0, 7, 9],
-];
-
-fn is_valid(x:usize, y:usize, n:i32) -> bool {
-    unsafe {
-        for i in 0..9 {
-            if BOARD[i][x] == n {
-                return false;
-            }
-        }
-        for i in 0..9 {
-            if BOARD[y][i] == n {
-                return false;
-            }
-        }
-        let x0 = x / 3 *3;
-        let y0 = y / 3 *3;
-        for i in 0..3 {
-            for j in 0..3 {
-                if BOARD[y0+i][x0+j] == n {
-                    return false;
-                }
-            }
-        }
-    }
-    return true;
+fn is_valid(board: &[[usize;9];9], i: usize, j: usize, n: usize) -> bool {
+    let (i0, j0) = ( (i / 3) * 3, (j / 3) * 3 );
+    let block_check = (j0..j0+3).all(|index_j| (i0..i0+3).all(|index_i| board[index_j][index_i] != n) );
+    let rowcol_check = (0..9).all(|k| (board[j][k] != n) && (board[k][i] != n));
+    rowcol_check && block_check
 }
 
-fn print_board() {
-    unsafe{
-        for i in 0..9 {
-            println!("{:?}",BOARD[i]);
-        }
+fn print_board(board: &[[usize;9];9]) {
+    for row in board.into_iter() {
+        println!("{:?}", row);
     }
+    println!("---------------------------");
 }
 
-fn solve() {
-    unsafe {
-        for y in 0..9 {
-            for x in 0..9 {
-                if BOARD[y][x] == 0 {
-                    for n in 1..10 {
-                        if is_valid(x, y, n) {
-                            BOARD[y][x] = n;
-                            solve();
-                            BOARD[y][x] = 0; 
-                        }
+fn solve(board: &mut [[usize;9];9]) {
+    for j in 0..9 {
+        for i in 0..9 {
+            if board[j][i] == 0 {
+                for n in 1..10 {
+                    if is_valid(board, i, j, n) {
+                        board[j][i] = n;
+                        solve(board);
+                        board[j][i] = 0;
                     }
-                    return;
                 }
+                return;
             }
         }
-        //print_board();
     }
+    print_board(board)
 }
+
 
 fn main() {
-    solve();
+    let mut board : [[usize;9];9] = [
+        [5,3,0, 0,7,0, 0,0,0],
+        [6,0,0, 1,9,5, 0,0,0],
+        [0,9,8, 0,0,0, 0,6,0],
+
+        [8,0,0, 0,6,0, 0,0,3],
+        [4,0,0, 8,0,3, 0,0,1],
+        [7,0,0, 0,2,0, 0,0,6],
+
+        [0,6,0, 0,0,0, 2,8,0],
+        [0,0,0, 4,1,9, 0,0,5],
+        [0,0,0, 0,8,0, 0,7,9]
+    ];
+    solve(&mut board);
 }
